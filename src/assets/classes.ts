@@ -9,3 +9,22 @@ export class customeraccount {
         this.balance = balance
 }
 }
+
+export class deposits {
+    balance: number
+    creationdate: Date
+
+    constructor(balance:number, creationdate:Date) {
+        this.balance = balance
+        this.creationdate = creationdate
+    }
+}
+
+export class products {
+    id: string
+    title: string
+    description: string
+    stock: number
+    price: number
+    }
+
