@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import express from 'express';
-import { customeraccount,deposits } from './assets/classes';
+import { customeraccount,product } from './assets/classes';
 import { products } from './assets/catalogue/products';
 // import bodyParser from 'body-parser';
 
@@ -136,6 +136,56 @@ app.post('/accounts/:accountId/purchases', (req, res) => {
   })
 });
 
+// API to add a product 
+let productlist: product[] = products;
+app.use('/products',express.json());
+app.use('/products', (req, res, next) => {
+  if(req.method === 'POST' && req.baseUrl === '/accounts') {
+    if(req.body.title) {
+      next();
+    }
+    res.status(400).send();
+    }
+  next();
+})
+app.post('/products', (req, res) => {
+  const producttitle = req.body.title;
+  const productdescription = req.body.description;
+  const productprice = req.body.price;
+  const productstock = req.body.stock;
+  const productid = randomUUID();
+  const addedproduct = new product(productid,producttitle,productdescription,productstock,productprice);
+  products.push(addedproduct);
+  productlist = products;
+  res.status(201).send({
+    id: productid,
+    title: producttitle,
+    description: productdescription,
+    price: productprice,
+    stock: productstock
+  })
+})
+
+// API to get the list of products
+
+app.get('/products',(req, res, next) => {
+  const simulatedday = req.headers['Simulated-Day'];
+  res.status(200).send(productlist);
+
+})
+
+// API to get the specific product
+
+app.get('/products/:productId', (req, res, next) => {
+  const id = req.params.productId;
+  const filteredproduct = productlist.filter((theproduct) => {
+      return theproduct.id === id
+  });
+  if (filteredproduct[0]){
+    res.status(200).send(filteredproduct[0]);
+  }
+  res.status(404).send();
+})
 
 
 

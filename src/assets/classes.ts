@@ -20,11 +20,18 @@ export class deposits {
     }
 }
 
-export class products {
+export class product {
     id: string
     title: string
     description: string
     stock: number
     price: number
+    
+    constructor(id: string, title: string, description:string, stock: number, price:number) {
+        this.id = id
+        this.title = title
+        this.description = description
+        this.stock = stock
+        this.price = price
     }
-
+}
