@@ -10,13 +10,19 @@ export class customeraccount {
 }
 }
 
-export class deposits {
-    balance: number
+export class registerdeposits {
+    amount: number
     creationdate: Date
+    accountId: string
+    depositId: string
+    trackday: number
 
-    constructor(balance:number, creationdate:Date) {
-        this.balance = balance
+    constructor(amount:number, creationdate:Date, accountId:string, depositId: string, trackday: number) {
+        this.amount = amount
         this.creationdate = creationdate
+        this.accountId = accountId
+        this.depositId = depositId
+        this.trackday = trackday
     }
 }
 

@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
-import express from 'express';
-import { customeraccount,product } from './assets/classes';
+import express, { request } from 'express';
+import { customeraccount,product, registerdeposits } from './assets/classes';
 import { products } from './assets/catalogue/products';
 // import bodyParser from 'body-parser';
 
@@ -8,8 +8,6 @@ const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 const app = express();
-const appdate = Date.now();
-// const jsonparser = bodyParser.json();
 
 app.get('/', (req, res) => {
   res.send({ message: 'Hello API' });
@@ -37,82 +35,56 @@ app.listen(port, host, () => {
 // using middleware to parsing json payload
 app.use('/accounts', express.json())
 
-// using middleware function to check the payload exists in the request or not
-app.use('/accounts', (req, res, next) => {
-  if (req.method === 'POST' && req.baseUrl === '/accounts'){
-    if (req.body.name) {
-        next();
-    }
-    else {
-      res.status(400).send();
-    }
-}
-});
-interface accountdeposits {
-  id: string
-  name: string
-  balance: number
-  deposit: number
-  depositdate: Date
-  SimulatedDay: number
-
-}
 // POST method to add a new customer account
 const accounts: customeraccount[] = [];
-const accountswithdeposits: accountdeposits[] = [];
 app.post('/accounts', (req,res) => {
-  const idvalue = randomUUID()
-  const namevalue = req.body.name
-  const balancevalue = 0
-  const addedaccount: customeraccount = new customeraccount(idvalue,namevalue,balancevalue);
-  accounts.push(addedaccount);
-  res.send({
-      id: idvalue,
-      name: namevalue,
-      balance: balancevalue,
-    });
+  if (req.body.name) {     
+    const idvalue = randomUUID()
+    const namevalue = req.body.name
+    const balancevalue = 0
+    const addedaccount: customeraccount = new customeraccount(idvalue,namevalue,balancevalue);
+    accounts.push(addedaccount);
+    res.send({
+        id: idvalue,
+        name: namevalue,
+        balance: balancevalue,
+      });
+    }
+    res.status(400).send();
 });
 
 // PART B: Purchasing Products
 
-//app.use('/accounts/:accountId/deposits', (req, res, next) => {
-//  req.headers['Simulated-Day'] = '0';
-//})
-
-const getdepositdate = (date: Date) => {
-  const day = date.getDate();
-  const month = date.getMonth();
-  const year = date.getFullYear();
-
-  return day+month+year;
-}
-
-app.use('/accounts/:accountId/deposits', express.json())
+const deposits: registerdeposits[] = [];
+app.use('/accounts/:accountId/deposits', express.json());
 app.use('/accounts/:accountId/deposits', (req,res,next) => {
-  const simulatedday = req.headers['Simulated-Day'];
-  const depositoraccountid = req.params.accountId;
-  const depositamount = req.body.amount;
-  const accountswithdeposits = accounts.forEach(account => {
-    if (depositoraccountid === account.id) {
-        account['deposit'] = depositamount;
-        account['depositdate'] = new Date();
-        account['SimulatedDay'] = simulatedday;
-      next();
-    }
-  });
-
+  if(req.body.amount){
+    next();
+  }
   res.status(404).send();
 })
 
+// APi to register deposit 
 app.post('/accounts/:accountId/deposits', (req,res) => {
-  accounts.forEach((account) => {
-    if (req.params.accountId === account.id){
-      res.status(201).send(account);
-    }
-    
+  const simulatedday = Number(req.headers['Simulated-Day']);
+  const depositoraccountid = req.params.accountId;
+  const depositamount = req.body.amount;
+  const depositId = randomUUID();
+  const depositdate = new Date();
+  const registerdeposit = new registerdeposits(depositamount,depositdate,depositoraccountid,depositId,simulatedday);
+  deposits.push(registerdeposit);
+  const accountwithdeposit = accounts.filter((account) => {
+    return req.params.accountId === account.id
   })
-});
-
+  res.status(201).send({
+    id: depositId,
+    name: accountwithdeposit[0].name,
+    balance: accountwithdeposit[0].balance
+  })
+    
+    res.status(400).send();
+    
+  });
 app.use('/accounts/:accountId/purchases', express.json());
 app.post('/accounts/:accountId/purchases', (req, res) => {
   accounts.forEach((account) => {
