@@ -61,7 +61,7 @@ app.use('/accounts/:accountId/deposits', (req,res,next) => {
   if(req.body.amount){
     next();
   }
-  res.status(404).send();
+  res.status(400).send();
 })
 
 // APi to register deposit 
